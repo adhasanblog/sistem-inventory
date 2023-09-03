@@ -9,20 +9,21 @@ datasource db {
 
 model Product {
   product_id      Int @id @default(autoincrement())
-  product_name    String
+  product_code    String @unique
+  product_type    String @unique
   category_id     Int
   brand_id        Int
-  type            String? @unique
-  serial_number   String?
   unit            String?
   purchase_price  Float?
   selling_price   Float?
   stock           Int?
+  serial_number   String?
   description     String?
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
   category        Category @relation(fields: [category_id], references: [category_id])
   brand           Brand @relation(fields: [brand_id], references: [brand_id])
+  inventory       InventoryTransaction[]
 }
 
 model Category {
@@ -35,4 +36,19 @@ model Brand {
   brand_id        Int @id @default(autoincrement())
   brand_name      String @unique
   Product         Product[]
+}
+
+enum TransactionType {
+  IN
+  OUT
+}
+
+model InventoryTransaction {
+  transaction_id  Int       @id @default(autoincrement())
+  product_id      Int
+  serial_number   String?
+  quantity        Int
+  transaction_type TransactionType
+  created_at      DateTime  @default(now())
+  product         Product   @relation(fields: [product_id], references: [product_id])
 }

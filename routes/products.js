@@ -4,27 +4,27 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 router.post('/', async (req, res) => {
-    const {product_name, category_id, brand_id, product_type, serial_number, unit, purchase_price, selling_price, stock, description} = req.body;
-
-    console.log(serial_number)
-    let finalStock = parseInt(stock);
-
-    if(serial_number){
-        finalStock = serial_number.split(',').length
-    }
+    const {
+        product_code,
+        product_type,
+        category_id,
+        brand_id,
+        unit,
+        purchase_price,
+        selling_price,
+        description
+    } = req.body;
 
 
     const addProduct = await prisma.product.create({
         data: {
-            product_name,
+            product_code,
+            product_type,
             category_id: parseInt(category_id),
             brand_id: parseInt(brand_id),
-            type: product_type,
-            serial_number,
             unit,
             purchase_price: parseFloat(purchase_price),
-            selling_price:parseFloat(selling_price),
-            stock: finalStock,
+            selling_price: parseFloat(selling_price),
             description
         }
     })
@@ -36,6 +36,116 @@ router.post('/', async (req, res) => {
             message: 'Data berhasil ditambahkan',
             data: addProduct
         });
+});
+
+router.get('/', async (req, res) => {
+    const products = await prisma.product.findMany();
+    res.status(200).json({
+        code: 200,
+        success: true,
+        message: 'Data berhasil ditampilkan',
+        datas: products
+    });
+
+});
+
+router.get('/:id', async (req, res) => {
+    const {id} = req.params;
+
+    const product = await prisma.product.findUnique({
+        where: {product_id: parseInt(id)},
+    });
+
+    if (product === null) {
+        return res.status(404).json(
+            {
+                code: 404,
+                success: false,
+                message: 'Data tidak ditemukan',
+            });
+
+    }
+    res.status(200).json(
+        {
+            code: 200,
+            success: true,
+            message: 'Data berhasil ditampilkan',
+            data: product
+        }
+    )
+});
+
+router.put('/:id', async (req, res) => {
+    const {id} = req.params;
+
+    const checkProduct = await prisma.product.findUnique({
+        where: {product_id: parseInt(id)},
+    });
+
+    if (checkProduct === null) {
+        return res.status(404).json(
+            {
+                code: 404,
+                success: false,
+                message: 'Data tidak ditemukan',
+            });
+    }
+
+    const {product_code, product_type, category_id, brand_id, unit, purchase_price, selling_price, description} = req.body;
+
+    const updateCategory = await prisma.product.update({
+        where: {product_id: parseInt(id)},
+        data: {
+            product_code,
+            product_type,
+            category_id: parseInt(category_id),
+            brand_id: parseInt(brand_id),
+            unit,
+            purchase_price: parseFloat(purchase_price),
+            selling_price: parseFloat(selling_price),
+            description
+        }
+    });
+
+    res.status(200).json(
+        {
+            code: 200,
+            success: true,
+            message: 'Data berhasil ditampilkan',
+            data: updateCategory
+        }
+    )
+});
+
+router.delete('/:id', async (req, res) => {
+    const {id} = req.params;
+
+    const checkProduct = await prisma.product.findUnique({
+        where: {product_id: parseInt(id)},
+    });
+
+    if (checkProduct === null) {
+        return res.status(404).json(
+            {
+                code: 404,
+                success: false,
+                message: 'Data tidak ditemukan',
+            });
+
+    }
+
+    const deleteProduct = await prisma.product.delete({
+        where: {product_id: parseInt(id)},
+    });
+
+    res.status(200).json(
+        {
+            code: 200,
+            success: true,
+            message: 'Data berhasil dihapus',
+            data: deleteProduct
+        }
+    )
 });
 
 module.exports = router;
