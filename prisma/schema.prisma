@@ -7,25 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Product {
-  product_id      Int @id @default(autoincrement())
-  product_code    String @unique
-  product_type    String @unique
-  category_id     Int
-  brand_id        Int
-  unit            String?
-  purchase_price  Float?
-  selling_price   Float?
-  stock           Int?
-  serial_number   String?
-  description     String?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-  category        Category @relation(fields: [category_id], references: [category_id])
-  brand           Brand @relation(fields: [brand_id], references: [brand_id])
-  inventory       InventoryTransaction[]
-}
-
 model Category {
   category_id     Int @id @default(autoincrement())
   category_name   String @unique
@@ -38,12 +19,40 @@ model Brand {
   Product         Product[]
 }
 
+model Product {
+  product_id      Int @id @default(autoincrement())
+  product_code    String @unique
+  product_type    String @unique
+  category_id     Int
+  brand_id        Int
+  unit            String?
+  purchase_price  Float?
+  selling_price   Float?
+  description     String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  category        Category @relation(fields: [category_id], references: [category_id])
+  brand           Brand @relation(fields: [brand_id], references: [brand_id])
+  stock           Stock[]
+  inventory       Transaction[]
+}
+
+model Stock {
+  stock_id        Int @id @default(autoincrement())
+  product_id      Int
+  stock           Int
+  serial_number   String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  product         Product @relation(fields: [product_id], references: [product_id])
+}
+
 enum TransactionType {
   IN
   OUT
 }
 
-model InventoryTransaction {
+model Transaction {
   transaction_id  Int       @id @default(autoincrement())
   product_id      Int
   serial_number   String?
