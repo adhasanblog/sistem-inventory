@@ -29,6 +29,11 @@ router.post('/', async (req, res) => {
         }
     })
 
+    await prisma.stock.create({
+        product_code,
+
+    })
+
     res.status(200).json(
         {
             code: 200,
@@ -54,6 +59,10 @@ router.get('/:id', async (req, res) => {
 
     const product = await prisma.product.findUnique({
         where: {product_id: parseInt(id)},
+        include: {
+            brand: true,
+            category: true
+        }
     });
 
     if (product === null) {

@@ -53,6 +53,9 @@ router.get('/:id', async (req, res) => {
 
     const brand = await prisma.brand.findUnique({
         where: {brand_id: parseInt(id)},
+        include: {
+            Product: true
+        }
     });
 
     if (brand === null) {
