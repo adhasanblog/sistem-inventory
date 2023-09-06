@@ -1,17 +1,22 @@
 const express = require('express');
 const {PrismaClient} = require('@prisma/client');
 const router = express.Router();
-const prism = new PrismaClient();
+const prisma = new PrismaClient();
 
 router.post('/in', async (req, res) => {
     const {
         product_id,
+        supplier_id,
         serial_number,
         quantity,
     } = req.body;
 
-    const product = await prism.product.findUnique({
+    const product = await prisma.product.findUnique({
         where: {product_id: parseInt(product_id)},
+        include: {
+            stock: true
+        }
+
     });
 
     let productQuantity = parseInt(quantity);
@@ -21,20 +26,29 @@ router.post('/in', async (req, res) => {
     }
 
 
-    const addTransaction = await prism.transaction.create({
+    const addTransaction = await prisma.transaction.create({
         data: {
             product_id: parseInt(product_id),
+            supplier_id: parseInt(supplier_id),
             serial_number,
             quantity: productQuantity,
             transaction_type: "IN"
         }
     });
-    console.log(productQuantity)
-    await prism.product.update({
+
+    await prisma.product.update({
         where: {product_id: parseInt(product_id)},
         data: {
-            stock: product.stock === null ? productQuantity : product.stock + productQuantity,
-            serial_number: product.serial_number === null  ? serial_number : product.serial_number.split(',').concat(serial_number).join(',')
+            stock: {
+                update: {
+                  where: {stock_id: product.stock[0].stock_id},
+                    data: {
+                        stock: product.stock[0].stock === null ? productQuantity : product.stock[0].stock + productQuantity,
+                        serial_number: product.stock[0].serial_number === null ? serial_number : product.stock[0].serial_number.split(',').concat(serial_number).join(',')
+                    }
+
+                }
+            }
         }
     })
 
@@ -55,8 +69,11 @@ router.post('/out', async (req, res) => {
         quantity,
     } = req.body;
 
-    const product = await prism.product.findUnique({
+    const product = await prisma.product.findUnique({
         where: {product_id: parseInt(product_id)},
+        include: {
+            stock: true,
+        }
     });
 
     let productQuantity = parseInt(quantity);
@@ -66,7 +83,7 @@ router.post('/out', async (req, res) => {
     }
 
 
-    const addTransaction = await prism.transaction.create({
+    const addTransaction = await prisma.transaction.create({
         data: {
             product_id: parseInt(product_id),
             serial_number,
@@ -75,17 +92,26 @@ router.post('/out', async (req, res) => {
         }
     });
 
-    let deletedSerialNumber = product.serial_number.split(',').filter((item) => !serial_number.split(',').includes(item)).join(',');
+    let deletedSerialNumber = product.stock[0].serial_number.split(',').filter((item) => !serial_number.split(',').includes(item)).join(',');
 
-    if(deletedSerialNumber === '') deletedSerialNumber = null;
+    if (deletedSerialNumber === '') deletedSerialNumber = null;
 
     console.log(deletedSerialNumber)
 
-    await prism.product.update({
+    await prisma.product.update({
         where: {product_id: parseInt(product_id)},
         data: {
-            stock: product.stock - productQuantity,
-            serial_number: deletedSerialNumber
+           stock: {
+               update: {
+                   where: {
+                          stock_id: product.stock[0].stock_id
+                   },
+                   data: {
+                       stock: product.stock[0].stock - productQuantity,
+                       serial_number: deletedSerialNumber
+                   }
+               }
+           }
         }
     })
 

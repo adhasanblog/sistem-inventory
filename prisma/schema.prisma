@@ -39,10 +39,10 @@ model Product {
 
 model Stock {
   stock_id      Int      @id @default(autoincrement())
-  product_code  String   @unique
-  stock         String?
+  product_id    Int
+  stock         Int
   serial_number String?
-  product       Product  @relation(fields: [product_code], references: [product_code])
+  product       Product  @relation(fields: [product_id], references: [product_id])
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 }
@@ -61,20 +61,20 @@ model Transaction {
   quantity         Int
   transaction_type TransactionType
   product          Product         @relation(fields: [product_id], references: [product_id])
-  supplier         Suplier?        @relation(fields: [supplier_id], references: [supplier_id])
+  supplier         Supplier?       @relation(fields: [supplier_id], references: [supplier_id])
   customer         Customer?       @relation(fields: [customer_id], references: [customer_id])
   created_at       DateTime        @default(now())
 }
 
-model Suplier {
+model Supplier {
   supplier_id      Int           @id @default(autoincrement())
   supplier_name    String?
   supplier_phone   String?
   supplier_email   String?
   supplier_address String?
+  transaction      Transaction[]
   created_at       DateTime      @default(now())
   updated_at       DateTime      @updatedAt
-  transaction      Transaction[]
 }
 
 model Customer {
@@ -83,7 +83,7 @@ model Customer {
   customer_phone   String?
   customer_email   String?
   customer_address String?
+  transaction      Transaction[]
   created_at       DateTime      @default(now())
   updated_at       DateTime      @updatedAt
-  transaction      Transaction[]
 }
