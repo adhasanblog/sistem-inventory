@@ -49,16 +49,27 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     const products = await prisma.product.findMany({
+
         include: {
-            brand: true,
-            category: true,
+            brand: {
+                select: {
+                    brand_name: true
+                }
+            },
+            category: {
+                select: {
+                    category_name: true
+                }
+            },
         }
     });
+
+
     res.status(200).json({
         code: 200,
         success: true,
         message: 'Data berhasil ditampilkan',
-        data: products
+        data: products,
     });
 
 });
