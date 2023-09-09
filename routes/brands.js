@@ -44,7 +44,7 @@ router.get('/', async (req, res) => {
         code: 200,
         success: true,
         message: 'Data berhasil ditampilkan',
-        datas: brands
+        data: brands
     });
 });
 
